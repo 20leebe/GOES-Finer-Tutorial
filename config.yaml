@@ -1,0 +1,29 @@
+model:
+  name: FINER
+  in_features: 2          # lat, lon       # predicted GOES value
+  hidden_features: 256
+  hidden_layers: 2
+  first_omega_0: 30.0
+  hidden_omega_0: 30.0
+  first_k: .6
+  hidden_k: .6
+  bias: true
+  first_bias_scale: null
+  scale_req_grad: false
+  
+data:
+    file_addr: /notebook_dir/public/mickellals-public/goes-16-2003-10-weeks.tmp.zarr
+    normalize: true
+    bands: ["CMI_C07", "CMI_C08", "CMI_C10"]
+    lat_min: 35
+    lat_max: 45
+    lon_min: -100
+    lon_max: -75
+    time_slice: 0
+    
+train:
+    batch_size: 256
+    epochs: 1000
+    
+    
+    
