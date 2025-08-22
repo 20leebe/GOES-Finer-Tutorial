@@ -124,8 +124,8 @@ def train_batches_model_with_psnr(
     for epoch in range(1, n_epochs + 1):
         model.train()
         epoch_loss = 0.0
-
-        for coords_batch, gt_batch in data_loader:
+        
+        for coords_batch, gt_batch in data_loader:            
             coords_batch = coords_batch.float().to(device)
             gt_batch = gt_batch.float().to(device)
 
