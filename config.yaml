@@ -14,7 +14,7 @@ model:
 data:
     file_addr: /notebook_dir/public/mickellals-public/goes-16-2003-10-weeks.tmp.zarr
     normalize: true
-    bands: ["CMI_C07", "CMI_C08", "CMI_C10"]
+    bands: ["CMI_C07"]
     lat_min: 35
     lat_max: 45
     lon_min: -100
