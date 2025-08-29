@@ -4,6 +4,7 @@ from train import train
 import xarray as xr
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def normalize_tensor(tensor):
@@ -163,3 +164,57 @@ def plot_band_comparison(tensor, predictions, coords, band_index, band_name=None
 
     plt.tight_layout(rect=[0, 0, 1, 0.95])
     plt.show()
+    
+    
+def extract_lat_lon_coordinates(ds: xr.Dataset, field_of_view: float = np.pi):
+    """
+    Taken from Mickell Als.
+    Extracts and normalizes the latitude and longitude coordinates from a dataset.
+
+    The coordinates are normalized to the range [0, 1] and are then converted to a
+    2D grid with the shape (nlat, nlon, 2) where nlat and nlon are the number of
+    latitude and longitude points respectively.
+
+    Parameters
+    ----------
+    ds : xr.Dataset
+        The dataset to extract coordinates from.
+    field_of_view : float
+        The view angle of the coordinates in radians, defaults to pi.
+
+    Returns
+    -------
+    dask.array.Array
+        The normalized coordinates, with shape (nlat * nlon, 2) where nlat and nlon are the number of
+        latitude and longitude points respectively.
+    """
+
+    # --- Unnormalized in degrees ---
+    lons_deg = ds["longitude"].data  # dask or numpy
+    lats_deg = ds["latitude"].data
+
+    lon_grid_deg, lat_grid_deg = darray.meshgrid(lons_deg, lats_deg, indexing="xy")
+    lat_lon_coords = darray.stack([lat_grid_deg.ravel(), lon_grid_deg.ravel()], axis=-1)
+
+    # convert lat lon to radians
+    lons = darray.radians(ds["longitude"].data)
+    lats = darray.radians(ds["latitude"].data)
+
+    lon_min, lon_max = lons.min(), lons.max()
+    lat_min, lat_max = lats.min(), lats.max()
+    lon_norm = (lons - lon_min) / (lon_max - lon_min)
+    lat_norm = (lats - lat_min) / (lat_max - lat_min)
+
+    # build flattened lat lon grid
+    lon_grid, lat_grid = darray.meshgrid(lon_norm, lat_norm, indexing="xy")
+
+    # lon should be -fov to fov - assuming global domain
+    lon_c = (lon_grid - 0.5) * (2 * field_of_view)
+
+    # lat should be -fov/2 to fov/2 - assuming global domain change this to -fov to fov if not global domain
+    lat_c = (lat_grid - 0.5) * field_of_view
+
+    lat_lon_coords_norm = darray.stack((lat_c.ravel(), lon_c.ravel()), axis=-1)  # shape (nlat*nlon, 2)
+
+
+    return lat_lon_coords, lat_lon_coords_norm # this is a dask array to access variables you need compute()
